@@ -1,0 +1,3 @@
+to run in https use
+
+($env:HTTPS = "true") -and (npm start)

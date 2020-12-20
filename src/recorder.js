@@ -7,21 +7,27 @@ class Rec extends React.Component{
             .then(
                 (stream) => {
                     this.mediaRecorder = new MediaRecorder(stream);
+                    let count = 0;
+            this.mediaRecorder.addEventListener("dataavailable", event => {
+                this.audioChunks.push(event.data);
+                console.log(count++);
+            });
                 }
-            );
+        );
     }
 
     startRecording = () => {
         this.audioChunks = [];
+        
         this.mediaRecorder.start();
+        console.log("starting");
 
-        this.mediaRecorder.addEventListener("dataavailable", event => {
-            this.audioChunks.push(event.data);
-        });
+        
     }
 
     stopRecording = () => {
         this.mediaRecorder.stop();
+        console.log("stopping");
 
         this.mediaRecorder.addEventListener("stop", () => {
             this.audioBlob = new Blob(this.audioChunks);
