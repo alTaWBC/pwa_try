@@ -1,52 +1,98 @@
-import React from 'react';
+import React from "react";
+import RecordButton from "./Record/RecordButton";
 
-class Rec extends React.Component{
+const timeInterval = 1000;
 
-    async componentDidMount() {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(
-                (stream) => {
-                    this.mediaRecorder = new MediaRecorder(stream);
-                    let count = 0;
-            this.mediaRecorder.addEventListener("dataavailable", event => {
-                this.audioChunks.push(event.data);
-                console.log(count++);
-            });
-                }
-        );
-    }
+const audioConstraints = {
+  channelCount: 1,
+  sampleRate: 44100,
+};
 
-    startRecording = () => {
-        this.audioChunks = [];
-        
-        this.mediaRecorder.start();
-        console.log("starting");
+class Rec extends React.Component {
+  state = {
+    audios: [],
+    dates: [],
+    recording: false,
+    index: null,
+    firstSegmentDuration: null,
+  };
 
-        
-    }
-
-    stopRecording = () => {
-        this.mediaRecorder.stop();
-        console.log("stopping");
-
-        this.mediaRecorder.addEventListener("stop", () => {
-            this.audioBlob = new Blob(this.audioChunks);
-            this.audioUrl = URL.createObjectURL(this.audioBlob);
+  async componentDidMount() {
+    navigator.mediaDevices
+      .getUserMedia({ audio: audioConstraints })
+      .then((stream) => {
+        this.mediaRecorder = new MediaRecorder(stream);
+        this.mediaRecorder.addEventListener("dataavailable", (event) => {
+          const audios = this.state.audios.concat([event.data]);
+          const dates = this.state.dates.concat([event.timecode]);
+          this.setState({
+            audios: audios,
+            dates: dates,
+          });
         });
-    }
+      });
+  }
 
-    playAudio = () => {
-        const audio = new Audio(this.audioUrl);
-        audio.play();
-    }
+  startRecording = () => {
+    this.mediaRecorder.start(timeInterval);
+    this.setState({ recording: true });
+  };
 
-    render() {
-        return <div>
-            <button onClick={this.startRecording}>Record</button>
-            <button onClick={this.stopRecording}>Stop</button>
-            <button onClick={this.playAudio}>Play</button>
-        </div>
-    };
+  stopRecording = () => {
+    this.mediaRecorder.stop();
+    this.setState({
+      recording: false,
+      firstSegment: null,
+      isFirstSegment: true,
+    });
+  };
+
+  playAudio = () => {
+    const segments = [this.state.audios[0]];
+    let duration = 0;
+    if (this.state.index !== 0) {
+      segments.push(this.state.audios[this.state.index]);
+      duration = timeInterval / 1000 - 0.05;
+    }
+    const audioBlob = new Blob(segments);
+    const audioURL = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioURL);
+    audio.playPromise = "anonymous";
+    console.log(duration);
+    audio.currentTime = duration;
+    audio.play();
+  };
+
+  clickRecordingHandler = (recordingIndex) => {
+    this.setState({ index: recordingIndex });
+  };
+
+  listAudio = () => {
+    if (this.state.dates.length === 0) return null;
+    return this.state.dates.map((date, index) => {
+      return (
+        <p onClick={() => this.clickRecordingHandler(index)} key={date}>
+          {date}
+        </p>
+      );
+    });
+  };
+
+  render() {
+    return (
+      <div>
+        <RecordButton
+          recording={this.state.recording}
+          startRecording={this.startRecording}
+          stopRecording={this.stopRecording}
+        />
+        <button onClick={this.playAudio} disabled={this.state.index === null}>
+          Play
+        </button>
+        <div>{this.listAudio()}</div>
+      </div>
+    );
+  }
 }
 
-export default Rec
+export default Rec;
