@@ -1,10 +1,16 @@
+import classes from "./RecordButton.module.css";
+
 const RecordButton = (props) => {
-  const button = props.recording ? (
-    <button onClick={props.stopRecording}>Stop Recording</button>
-  ) : (
-    <button onClick={props.startRecording}>Start Recording</button>
+  let buttonClasses = [classes.button];
+  if (props.recording) buttonClasses.push(classes.Red);
+  return (
+    <button
+      onClick={props.recording ? props.stopRecording : props.startRecording}
+      className={buttonClasses.join(" ")}
+    >
+      <i className="material-icons">{props.recording ? "mic_off" : "mic"}</i>
+    </button>
   );
-  return button;
 };
 
 export default RecordButton;
