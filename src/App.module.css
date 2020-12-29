@@ -19,9 +19,6 @@
 }
 
 .p {
-  position: absolute;
-  bottom: 18%;
-  left: 48%;
   background-color: white;
   color: black;
   padding: 2px;
@@ -31,4 +28,14 @@
 
 .Unity {
   width: 94%;
+}
+
+.centeredDiv {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  width: 90px;
+  bottom: 10%;
 }

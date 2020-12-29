@@ -80,17 +80,11 @@ class Rec extends React.Component {
 
   render() {
     return (
-      <div>
-        <RecordButton
-          recording={this.state.recording}
-          startRecording={this.startRecording}
-          stopRecording={this.stopRecording}
-        />
-        <button onClick={this.playAudio} disabled={this.state.index === null}>
-          Play
-        </button>
-        <div>{this.listAudio()}</div>
-      </div>
+      <RecordButton
+        recording={this.state.recording}
+        startRecording={this.startRecording}
+        stopRecording={this.stopRecording}
+      />
     );
   }
 }
