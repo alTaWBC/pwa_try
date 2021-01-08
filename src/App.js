@@ -25,11 +25,22 @@ class App extends Component {
     }
     this.state = {
       id: id,
+      gameId: 0,
     };
   }
 
+  avaliateProduction = (message) => {
+    if (message["gameId"] !== this.state.gameId) return;
+    if (message["response"].toLowerCase() === "true")
+      unityContent.send("Character", "moveCharacter", "True");
+  };
+
   onClick = () => {
     unityContent.send("Character", "moveCharacter", "True");
+  };
+
+  increaseId = () => {
+    this.setState({ gameId: this.state.gameId + 1 });
   };
 
   render() {
@@ -39,9 +50,14 @@ class App extends Component {
           <div className={classes.Unity}>
             <Unity unityContent={unityContent} />
           </div>
-          <button onClick={this.onClick}>Move Character!</button>
           <div className={classes.centeredDiv}>
-            <Recorder />
+            <Recorder
+              sendMessage={this.avaliateProduction}
+              id={this.state.id}
+              unity={unityContent}
+              gameId={this.state.gameId}
+              newGame={this.increaseId}
+            />
             <p className={classes.p}>{this.state.id}</p>
           </div>
         </header>

@@ -1,20 +1,25 @@
 import React from "react";
 import RecordButton from "./Record/RecordButton";
+const io = require("socket.io-client");
 
-const timeInterval = 1000;
+const socket = io("http://192.168.1.11:5000");
+// const socket = io("ws://192.168.1.10:5000", {
+//   transports: ["websocket"],
+// });
+
+const timeInterval = 250;
 
 const audioConstraints = {
   channelCount: 1,
   sampleRate: 44100,
 };
 
+let count = 0;
+
 class Rec extends React.Component {
   state = {
-    audios: [],
-    dates: [],
     recording: false,
-    index: null,
-    firstSegmentDuration: null,
+    label: "",
   };
 
   async componentDidMount() {
@@ -23,63 +28,54 @@ class Rec extends React.Component {
       .then((stream) => {
         this.mediaRecorder = new MediaRecorder(stream);
         this.mediaRecorder.addEventListener("dataavailable", (event) => {
-          const audios = this.state.audios.concat([event.data]);
-          const dates = this.state.dates.concat([event.timecode]);
-          this.setState({
-            audios: audios,
-            dates: dates,
-          });
+          socket.emit(
+            "playsound",
+            {
+              name: event.timecode,
+              file: event.data,
+              segment: count++,
+              id: this.props.id,
+              label: this.state.label,
+              "gameId": this.props.gameId,
+            },
+            (message) => {
+              this.props.sendMessage(message);
+            }
+          );
         });
       });
+    this.props.unity.on("GameOver", () => {
+      this.stopRecording();
+    });
+    this.props.unity.on("GameStart", (message) => {
+      if (message === "Menu") {
+        this.stopRecording();
+        this.setState({ label: "" });
+      } else {
+        const label = message.split("_")[1];
+        this.setState({ label: label });
+        this.props.newGame();
+        this.stopRecording();
+      }
+    });
   }
 
   startRecording = () => {
+    count = 0;
     this.mediaRecorder.start(timeInterval);
     this.setState({ recording: true });
   };
 
   stopRecording = () => {
+    if (this.mediaRecorder.state !== "recording") return;
     this.mediaRecorder.stop();
     this.setState({
       recording: false,
-      firstSegment: null,
-      isFirstSegment: true,
-    });
-  };
-
-  playAudio = () => {
-    const segments = [this.state.audios[0]];
-    let duration = 0;
-    if (this.state.index !== 0) {
-      segments.push(this.state.audios[this.state.index]);
-      duration = timeInterval / 1000 - 0.05;
-    }
-    const audioBlob = new Blob(segments);
-    const audioURL = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioURL);
-    audio.playPromise = "anonymous";
-    console.log(duration);
-    audio.currentTime = duration;
-    audio.play();
-  };
-
-  clickRecordingHandler = (recordingIndex) => {
-    this.setState({ index: recordingIndex });
-  };
-
-  listAudio = () => {
-    if (this.state.dates.length === 0) return null;
-    return this.state.dates.map((date, index) => {
-      return (
-        <p onClick={() => this.clickRecordingHandler(index)} key={date}>
-          {date}
-        </p>
-      );
     });
   };
 
   render() {
-    return (
+    return this.state.label === "" || this.state.label === "Menu" ? null : (
       <RecordButton
         recording={this.state.recording}
         startRecording={this.startRecording}
