@@ -30,10 +30,12 @@ class App extends Component {
   }
 
   avaliateProduction = (message) => {
-    console.log(message);
-    if (message["gameId"] !== this.state.gameId) return;
-    if (message["response"].toLowerCase() === "true")
+    const response = JSON.parse(message);
+    if (parseInt(response["gameId"]) !== this.state.gameId) return;
+    if (response["response"].toLowerCase() === "true") {
+      console.log("characterMoves");
       unityContent.send("Character", "moveCharacter", "True");
+    }
   };
 
   onClick = () => {

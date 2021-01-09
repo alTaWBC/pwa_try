@@ -1,7 +1,7 @@
 import React from "react";
 import RecordButton from "./Record/RecordButton";
 
-const timeInterval = 250;
+const timeInterval = 900;
 
 const audioConstraints = {
   channelCount: 1,
@@ -25,6 +25,7 @@ class Rec extends React.Component {
           const formData = new FormData();
           formData.append("file", event.data);
           fetch("https://biovisualspeech.eu.pythonanywhere.com/postFileWebm/", {
+          // fetch("http://192.168.1.11:5050/postFile/", {
             headers: {
               name: event.timecode,
               segment: count,
