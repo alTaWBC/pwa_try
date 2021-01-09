@@ -1,11 +1,5 @@
 import React from "react";
 import RecordButton from "./Record/RecordButton";
-const io = require("socket.io-client");
-
-const socket = io("http://192.168.1.11:5000");
-// const socket = io("ws://192.168.1.10:5000", {
-//   transports: ["websocket"],
-// });
 
 const timeInterval = 250;
 
@@ -28,20 +22,23 @@ class Rec extends React.Component {
       .then((stream) => {
         this.mediaRecorder = new MediaRecorder(stream);
         this.mediaRecorder.addEventListener("dataavailable", (event) => {
-          socket.emit(
-            "playsound",
-            {
+          const formData = new FormData();
+          formData.append("file", event.data);
+          fetch("http://biovisualspeech.eu.pythonanywhere.com/postFileWebm/", {
+            headers: {
               name: event.timecode,
-              file: event.data,
-              segment: count++,
+              segment: count,
               id: this.props.id,
               label: this.state.label,
-              "gameId": this.props.gameId,
+              gameId: this.props.gameId,
+              "Content-Length": event.data.length,
             },
-            (message) => {
-              this.props.sendMessage(message);
-            }
-          );
+            method: "POST",
+            body: formData,
+          }).then((response) => {
+            if (!response.ok) return;
+            response.text().then((message) => this.props.sendMessage(message));
+          });
         });
       });
     this.props.unity.on("GameOver", () => {
@@ -75,7 +72,8 @@ class Rec extends React.Component {
   };
 
   render() {
-    return this.state.label === "" || this.state.label === "Menu" ? null : (
+    return (this.state.label === "" || this.state.label === "Menu") &&
+      false ? null : (
       <RecordButton
         recording={this.state.recording}
         startRecording={this.startRecording}

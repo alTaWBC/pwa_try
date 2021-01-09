@@ -30,6 +30,7 @@ class App extends Component {
   }
 
   avaliateProduction = (message) => {
+    console.log(message);
     if (message["gameId"] !== this.state.gameId) return;
     if (message["response"].toLowerCase() === "true")
       unityContent.send("Character", "moveCharacter", "True");
