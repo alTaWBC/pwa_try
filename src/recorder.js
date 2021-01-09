@@ -24,7 +24,7 @@ class Rec extends React.Component {
         this.mediaRecorder.addEventListener("dataavailable", (event) => {
           const formData = new FormData();
           formData.append("file", event.data);
-          fetch("http://biovisualspeech.eu.pythonanywhere.com/postFileWebm/", {
+          fetch("https://biovisualspeech.eu.pythonanywhere.com/postFileWebm/", {
             headers: {
               name: event.timecode,
               segment: count,
@@ -72,8 +72,7 @@ class Rec extends React.Component {
   };
 
   render() {
-    return (this.state.label === "" || this.state.label === "Menu") &&
-      false ? null : (
+    return this.state.label === "" ? null : (
       <RecordButton
         recording={this.state.recording}
         startRecording={this.startRecording}
