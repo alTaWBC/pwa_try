@@ -74,7 +74,7 @@ class Rec extends React.Component {
     };
 
     render() {
-        return false && this.state.label === "" ? null : (
+        return this.state.label === "" ? null : (
             <RecordButton
                 recording={this.state.recording}
                 startRecording={this.startRecording}
