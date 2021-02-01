@@ -17,13 +17,15 @@ class Rec extends React.Component {
     };
 
     async componentDidMount() {
-        navigator.mediaDevices.getUserMedia({ audio: audioConstraints }).then((stream) => {
-            this.mediaRecorder = new MediaRecorder(stream);
-            this.mediaRecorder.addEventListener("dataavailable", (event) => {
-                const formData = new FormData();
-                formData.append("file", event.data);
-                fetch("https://biovisualspeech.eu.pythonanywhere.com/postFileWebm/", {
-                    // fetch("http://192.168.1.8:5000/playsound/", {
+        navigator.mediaDevices
+            .getUserMedia({ audio: audioConstraints })
+            .then((stream) => {
+                this.mediaRecorder = new MediaRecorder(stream);
+                this.mediaRecorder.addEventListener("dataavailable", (event) => {
+                    const formData = new FormData();
+                    formData.append("file", event.data);
+                    fetch("https://biovisualspeech.eu.pythonanywhere.com/postFileWebm/", {
+                        // fetch("http://192.168.1.8:5000/playsound/", {
                         headers: {
                             name: event.timecode,
                             segment: count,
@@ -38,8 +40,9 @@ class Rec extends React.Component {
                         if (!response.ok) return;
                         response.text().then((message) => this.props.sendMessage(message));
                     });
-            });
-        });
+                });
+            })
+            .catch(() => (this.mediaRecorder = undefined));
         this.props.unity.on("GameOver", () => {
             this.stopRecording();
             this.setState({
@@ -49,10 +52,10 @@ class Rec extends React.Component {
         this.props.unity.on("GameStart", (message) => {
             if (message === "Menu") {
                 this.stopRecording();
-                this.setState({ label: "" });
+                !this.state && this.setState({ label: "" });
             } else {
                 const label = message.split("_")[1];
-                this.setState({ label: label });
+                !this.state && this.setState({ label: label });
                 this.props.newGame();
                 this.stopRecording();
             }
@@ -66,15 +69,16 @@ class Rec extends React.Component {
     };
 
     stopRecording = () => {
-        if (this.mediaRecorder.state !== "recording") return;
+        if (this.mediaRecorder === undefined || this.mediaRecorder.state !== "recording") return;
         this.mediaRecorder.stop();
-        this.setState({
-            recording: false,
-        });
+        !this.state &&
+            this.setState({
+                recording: false,
+            });
     };
 
     render() {
-        return this.state.label === "" ? null : (
+        return !this.mediaRecorder || this.state.label === "" ? null : (
             <RecordButton
                 recording={this.state.recording}
                 startRecording={this.startRecording}

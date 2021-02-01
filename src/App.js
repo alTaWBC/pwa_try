@@ -44,6 +44,7 @@ class App extends Component {
     };
 
     render() {
+        window.screen.orientation.lock("landscape");
         return (
             <div className={classes.App}>
                 <header className={classes.header}>
