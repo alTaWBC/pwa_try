@@ -1,7 +1,7 @@
 import React from "react";
 import RecordButton from "./Record/RecordButton";
 
-const timeInterval = 900;
+const timeInterval = 1000;
 
 const audioConstraints = {
     channelCount: 1,
