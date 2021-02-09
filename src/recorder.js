@@ -92,14 +92,15 @@ class Rec extends React.Component {
         }
     };
 
-    startRecording = () => {
+    startRecording = async () => {
+        if (this.mediaRecorder === undefined) await this.microphonePermission();
+        if (this.mediaRecorder === undefined) return;
         count = 0;
         this.mediaRecorder.start(timeInterval);
         this.setState({ recording: true });
     };
 
-    stopRecording = async () => {
-        if (this.mediaRecorder === undefined) await this.microphonePermission();
+    stopRecording = () => {
         if (this.mediaRecorder === undefined || this.mediaRecorder.state !== "recording") return;
         this.mediaRecorder.stop();
         this.setState({
