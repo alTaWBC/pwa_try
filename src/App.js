@@ -5,6 +5,7 @@ import React, { Component } from "react";
 import { v4 } from "uuid";
 
 const unityContent = new UnityContent("Build/webgl1/game.json", "Build/webgl1/UnityLoader.js");
+// const unityContent = new UnityContent("./Build/webgl1/game.json", "./Build/webgl1/UnityLoader.js");
 
 class App extends Component {
     generateUUID = () => {
@@ -44,7 +45,6 @@ class App extends Component {
     };
 
     render() {
-        window.screen.orientation.lock("landscape");
         return (
             <div className={classes.App}>
                 <header className={classes.header}>

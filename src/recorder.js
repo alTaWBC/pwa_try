@@ -52,10 +52,11 @@ class Rec extends React.Component {
         this.props.unity.on("GameStart", (message) => {
             if (message === "Menu") {
                 this.stopRecording();
-                !this.state && this.setState({ label: "" });
+                this.setState({ label: "" });
             } else {
+                console.log(message);
                 const label = message.split("_")[1];
-                !this.state && this.setState({ label: label });
+                this.setState({ label: label });
                 this.props.newGame();
                 this.stopRecording();
             }
@@ -78,7 +79,7 @@ class Rec extends React.Component {
     };
 
     render() {
-        return !this.mediaRecorder || this.state.label === "" ? null : (
+        return this.state.label === "" ? null : (
             <RecordButton
                 recording={this.state.recording}
                 startRecording={this.startRecording}
