@@ -72,10 +72,9 @@ class Rec extends React.Component {
     stopRecording = () => {
         if (this.mediaRecorder === undefined || this.mediaRecorder.state !== "recording") return;
         this.mediaRecorder.stop();
-        !this.state &&
-            this.setState({
-                recording: false,
-            });
+        this.setState({
+            recording: false,
+        });
     };
 
     render() {
