@@ -24,6 +24,7 @@ class Rec extends React.Component {
                 this.mediaRecorder.addEventListener("dataavailable", (event) => {
                     const formData = new FormData();
                     formData.append("file", event.data);
+                    console.log(event.data);
                     fetch("https://biovisualspeech.eu.pythonanywhere.com/postFileWebm/", {
                         // fetch("http://192.168.1.8:5000/playsound/", {
                         headers: {

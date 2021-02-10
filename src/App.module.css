@@ -40,5 +40,9 @@
     bottom: 10%;
 }
 
-@media (orientation: portrait) and (max-width: 600px) {
+.button {
+    outline: none;
+    border: none;
+    background-color: white;
+    font-size: medium;
 }

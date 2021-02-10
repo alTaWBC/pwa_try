@@ -36,12 +36,39 @@ class App extends Component {
         }
     };
 
-    onClick = () => {
-        unityContent.send("Character", "moveCharacter", "True");
-    };
-
     increaseId = () => {
         this.setState({ gameId: this.state.gameId + 1 });
+    };
+
+    doubleClick = () => {
+        const id = this.generateUUID();
+        this.changeId(id);
+    };
+
+    mouseDown = () => {
+        const timeout = setTimeout((_) => this.changeId(), 1000);
+        this.setState({
+            timeout: timeout,
+        });
+    };
+
+    mouseUp = () => {
+        clearTimeout(this.state.timeout);
+    };
+
+    changeId = (id) => {
+        console.log(id);
+        if (!id) {
+            id = prompt("Qual é o id?");
+            if (!id || id.length !== 6) {
+                alert("Id Inválido! Tente novamente");
+                return;
+            }
+        }
+        localStorage.setItem("id", id);
+        this.setState({
+            id: id,
+        });
     };
 
     render() {
@@ -59,7 +86,16 @@ class App extends Component {
                             gameId={this.state.gameId}
                             newGame={this.increaseId}
                         />
-                        <p className={classes.p}>{this.state.id}</p>
+                        <p className={classes.p}>
+                            <button
+                                className={classes.button}
+                                onDoubleClick={this.doubleClick}
+                                onMouseDown={this.mouseDown}
+                                onMouseUp={this.mouseUp}
+                            >
+                                {this.state.id}
+                            </button>
+                        </p>
                     </div>
                 </header>
             </div>
