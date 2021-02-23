@@ -2,7 +2,7 @@ import React from "react";
 import RecordButton from "./Record/RecordButton";
 
 // Time between calls to {this.onDataAvailable}
-const timeInterval = 1000;
+const timeInterval = 3000;
 
 // Segment number
 
