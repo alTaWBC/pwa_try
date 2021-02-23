@@ -5,7 +5,6 @@ import RecordButton from "./Record/RecordButton";
 const timeInterval = 1000;
 
 // Segment number
-let count = 0;
 
 const SERVER_URL = "https://biovisualspeech.eu.pythonanywhere.com/postFileWebm/";
 
@@ -35,8 +34,9 @@ class Rec extends React.Component {
             // Message can be 'Game_{Label}' or 'Menu'
             // In the former Label will be {Label}
             // In the latter Label will be {undefined}
-            // this.changeLabel uses label === '' in undefined scenarios
-            this.changeLabel(message.split("_")[1]);
+            // this.changeLabel({label}) uses label === '' in undefined scenarios
+            this.changeLabel( message.split( "_" )[1] );
+            
             const newGame = message !== "Menu";
             if (newGame) this.props.newGame();
         });
@@ -67,7 +67,6 @@ class Rec extends React.Component {
         return fetch(SERVER_URL, {
             headers: {
                 name: timecode,
-                segment: count,
                 id: this.props.id,
                 label: this.state.label,
                 gameId: this.props.gameId,
@@ -81,7 +80,6 @@ class Rec extends React.Component {
     startRecording = async () => {
         const MicrophonePermissionsWereNotGiven = this.mediaRecorder === undefined;
         if (MicrophonePermissionsWereNotGiven) return;
-        count = 0;
         this.mediaRecorder.start(timeInterval);
         this.setState({ recording: true });
     };
