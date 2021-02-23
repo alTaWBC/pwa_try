@@ -12,6 +12,8 @@ const SERVER_URL = "https://biovisualspeech.eu.pythonanywhere.com/postFileWebm/"
 // eslint-disable-next-line no-unused-vars
 const DEBUG_URL = "http://192.168.1.8:5000/playsound/";
 
+let count = 0;
+
 class Rec extends React.Component {
     state = {
         recording: false,
@@ -35,8 +37,8 @@ class Rec extends React.Component {
             // In the former Label will be {Label}
             // In the latter Label will be {undefined}
             // this.changeLabel({label}) uses label === '' in undefined scenarios
-            this.changeLabel( message.split( "_" )[1] );
-            
+            this.changeLabel(message.split("_")[1]);
+
             const newGame = message !== "Menu";
             if (newGame) this.props.newGame();
         });
@@ -50,6 +52,7 @@ class Rec extends React.Component {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             this.mediaRecorder = new MediaRecorder(stream);
+            this.mediaRecorder.addEventListener("dataavailable", this.onDataAvailable);
         } catch {
             this.mediaRecorder = undefined;
         }
@@ -62,11 +65,13 @@ class Rec extends React.Component {
     };
 
     sendDataToServer = async (data, timecode) => {
+        alert("sending");
         const formData = new FormData();
         formData.append("file", data);
         return fetch(SERVER_URL, {
             headers: {
                 name: timecode,
+                segment: count,
                 id: this.props.id,
                 label: this.state.label,
                 gameId: this.props.gameId,
@@ -81,6 +86,7 @@ class Rec extends React.Component {
         const MicrophonePermissionsWereNotGiven = this.mediaRecorder === undefined;
         if (MicrophonePermissionsWereNotGiven) return;
         this.mediaRecorder.start(timeInterval);
+        count = 0;
         this.setState({ recording: true });
     };
 
