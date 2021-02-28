@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Component } from "react";
 import RecordButton from "./Record/RecordButton";
 
 // Time between calls to {this.onDataAvailable}
@@ -6,21 +6,24 @@ const timeInterval = 3000;
 
 // Segment number
 
-const SERVER_URL = "https://biovisualspeech.eu.pythonanywhere.com/postFileWebm/";
+const SERVER_URL = "https://biovisualspeech.eu.pythonanywhere.com";
 
 // Used for debug purposes
 // eslint-disable-next-line no-unused-vars
 const DEBUG_URL = "http://192.168.1.8:5000/playsound/";
+// const date = new Date();
 
 let count = 0;
 
-class Rec extends React.Component {
+class Rec extends Component {
     state = {
         recording: false,
-        label: "",
+        label: "l",
+        chunks: [],
+        audios: [],
     };
 
-    async componentDidMount() {
+    componentDidMount() {
         this.prepareMicrophone();
         this.prepareUnityCommunication();
     }
@@ -49,26 +52,57 @@ class Rec extends React.Component {
     };
 
     prepareMicrophone = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            this.mediaRecorder = new MediaRecorder(stream);
-            this.mediaRecorder.addEventListener("dataavailable", this.onDataAvailable);
-        } catch {
-            this.mediaRecorder = undefined;
-        }
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        this.mediaRecorder = new MediaRecorder(stream);
+        // const isApple =
+        //     window.navigator.platform.includes("iPhone") ||
+        //     window.navigator.platform.includes("Mac") ||
+        //     window.navigator.platform.includes("iPad");
+        this.mediaRecorder.addEventListener(
+            "dataavailable",
+            /*isApple ?*/ this.onDataAvailableSafari //: this.onDataAvailable
+        );
+        /*isApple &&*/ this.mediaRecorder.addEventListener("stop", this.onStop);
     };
 
-    onDataAvailable = async ({ data, timecode }) => {
-        const response = await this.sendDataToServer(data, timecode);
+    onDataAvailable = async ({ data, timecode }, url = undefined) => {
+        alert(data.size);
+        const response = await this.sendDataToServer(data, timecode, url);
         if (!response.ok) return;
         response.text().then((message) => this.props.sendMessage(message));
     };
 
-    sendDataToServer = async (data, timecode) => {
-        alert("sending");
+    // Safari handles recording sound in a different light
+    // So we need special care
+    onDataAvailableSafari = ({ data /*, timecode = date.getTime()*/ }) => {
+        // const blob = new Blob([data], { type: "audio/mp4" });
+        // const url = URL.createObjectURL(blob);
+        // const audio = new Audio(url);
+        // audio.play();
+        // this.onDataAvailable({ data: blob, timecode: timecode }, "postFileMp4/");
+        const chunks = [...this.state.chunks, data];
+        this.setState({ chunks });
+    };
+
+    onStop = ({ data /*, timecode = date.getTime()*/ }) => {
+        let chunks = [...this.state.chunks, data];
+        const blob = new Blob(chunks, { type: "audio/mp4" });
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        // setTimeout(() => {
+        //     audio.play();
+        //     alert("Timeout");
+        // }, 1000);
+        // this.sendDataToServer(data, timecode, "postFileMp4/");
+        const audios = [...this.state.audios, audio];
+        chunks = [];
+        this.setState({ chunks, audios });
+    };
+
+    sendDataToServer = async (data, timecode, location = "postFileWebm/") => {
         const formData = new FormData();
         formData.append("file", data);
-        return fetch(SERVER_URL, {
+        return fetch(`${SERVER_URL}/${location}`, {
             headers: {
                 name: timecode,
                 segment: count,
@@ -85,6 +119,10 @@ class Rec extends React.Component {
     startRecording = async () => {
         const MicrophonePermissionsWereNotGiven = this.mediaRecorder === undefined;
         if (MicrophonePermissionsWereNotGiven) return;
+
+        const MicrophoneIsNotInitialized = this.mediaRecorder === null;
+        if (MicrophoneIsNotInitialized) return;
+
         this.mediaRecorder.start(timeInterval);
         count = 0;
         this.setState({ recording: true });
@@ -94,18 +132,45 @@ class Rec extends React.Component {
         const MicrophonePermissionsWereNotGiven = this.mediaRecorder === undefined;
         const MicrophoneIsNotRecording = !this.state.recording;
         if (MicrophonePermissionsWereNotGiven || MicrophoneIsNotRecording) return;
+
+        const MicrophoneIsNotInitialized = this.mediaRecorder === null;
+        if (MicrophoneIsNotInitialized) return;
+
         this.mediaRecorder.stop();
         this.setState({ recording: false });
     };
 
+    playAudio = (index) => {
+        this.state.audios[index].play();
+    };
+
+    createAudios = (audios) => {
+        return audios.map((_, index) => {
+            return (
+                <div key={index}>
+                    <button onClick={() => this.playAudio(index)}>{index}</button>
+                </div>
+            );
+        });
+    };
+
     render() {
-        return this.state.label === "" ? null : (
-            <RecordButton
-                recording={this.state.recording}
-                startRecording={this.startRecording}
-                stopRecording={this.stopRecording}
-            />
-        );
+        try {
+            console.log(this.mediaRecorder?.state);
+            const audios = this.createAudios(this.state.audios);
+            return this.state.label === "" ? null : (
+                <div>
+                    <RecordButton
+                        recording={this.state.recording}
+                        startRecording={this.startRecording}
+                        stopRecording={this.stopRecording}
+                    />
+                    {audios}
+                </div>
+            );
+        } catch (e) {
+            return <div>{e.message}</div>;
+        }
     }
 }
 
