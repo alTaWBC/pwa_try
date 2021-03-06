@@ -1,7 +1,7 @@
 import classes from "./RecordButton.module.css";
 
 const RecordButton = (props) => {
-  let buttonClasses = [classes.button];
+  let buttonClasses = [classes.AudioRecorder];
   if (props.recording) buttonClasses.push(classes.Red);
   return (
     <button

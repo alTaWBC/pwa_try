@@ -10,8 +10,8 @@ const SERVER_URL = "https://biovisualspeech.eu.pythonanywhere.com";
 
 // Used for debug purposes
 // eslint-disable-next-line no-unused-vars
-const DEBUG_URL = "http://192.168.1.8:5000/playsound/";
-// const date = new Date();
+const DEBUG_URL = "http://192.168.1.7:5050";
+const date = new Date();
 
 let count = 0;
 
@@ -21,6 +21,7 @@ class Rec extends Component {
         label: "l",
         chunks: [],
         audios: [],
+        urls: [],
     };
 
     componentDidMount() {
@@ -52,7 +53,7 @@ class Rec extends Component {
     };
 
     prepareMicrophone = async () => {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         this.mediaRecorder = new MediaRecorder(stream);
         // const isApple =
         //     window.navigator.platform.includes("iPhone") ||
@@ -84,32 +85,43 @@ class Rec extends Component {
         this.setState({ chunks });
     };
 
-    onStop = ({ data /*, timecode = date.getTime()*/ }) => {
+    onStop = ({ data, timecode = date.getTime() }) => {
         let chunks = [...this.state.chunks, data];
-        const blob = new Blob(chunks, { type: "audio/mp4" });
+        const blob = new Blob(chunks, { type: "audio/wav" });
+        // const fileReader = new FileReader();
+        // fileReader.onload = () => {
+        //     console.log(fileReader.result);
+        //     console.log(fileReader.result.byteLength);
+        //     this.sendDataToServer(fileReader.result, timecode, "postFileMp4/");
+        // };
+        // fileReader.readAsArrayBuffer(blob);
+
+        this.sendDataToServer(blob, timecode, "postFileMp4/");
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
-        // setTimeout(() => {
-        //     audio.play();
-        //     alert("Timeout");
-        // }, 1000);
-        // this.sendDataToServer(data, timecode, "postFileMp4/");
         const audios = [...this.state.audios, audio];
         chunks = [];
-        this.setState({ chunks, audios });
+        const urls = [...this.state.urls, url];
+        this.setState({ chunks, audios, urls });
     };
 
     sendDataToServer = async (data, timecode, location = "postFileWebm/") => {
         const formData = new FormData();
         formData.append("file", data);
+        console.log(data.type);
+        alert(data.type);
+        const length = data.length || data.size;
         return fetch(`${SERVER_URL}/${location}`, {
             headers: {
-                name: timecode,
+                name: `${this.props.id}${timecode}`,
                 segment: count,
                 id: this.props.id,
                 label: this.state.label,
                 gameId: this.props.gameId,
-                "Content-Length": data.length,
+                "Content-Range": `bytes 0-${length}/${length}`,
+                "Accept-Ranges": "bytes",
+                "Content-Transfer-Encoding": "binary",
+                "Content-Length": length,
             },
             method: "POST",
             body: formData,
@@ -145,10 +157,12 @@ class Rec extends Component {
     };
 
     createAudios = (audios) => {
-        return audios.map((_, index) => {
+        return audios.map((audio, index) => {
             return (
                 <div key={index}>
-                    <button onClick={() => this.playAudio(index)}>{index}</button>
+                    <a href={this.state.urls[index]} download={`${index}.wav`}>
+                        {index}
+                    </a>
                 </div>
             );
         });
