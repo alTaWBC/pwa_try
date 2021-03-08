@@ -81,8 +81,15 @@ class Rec extends Component {
         // const audio = new Audio(url);
         // audio.play();
         // this.onDataAvailable({ data: blob, timecode: timecode }, "postFileMp4/");
-        const chunks = [...this.state.chunks, data];
-        this.setState({ chunks });
+        data.arrayBuffer().then((buffer) => {
+            const alertString = `
+            Blob size ${data.size}
+            Blob type ${data.type}
+            Size ${buffer.byteLength}`;
+            alert(alertString);
+        });
+        // const chunks = [...this.state.chunks, data];
+        // this.setState({ chunks });
     };
 
     onStop = ({ data, timecode = date.getTime() }) => {
